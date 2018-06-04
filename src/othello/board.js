@@ -1,5 +1,6 @@
 import $ from 'jquery'
 import _ from 'lodash'
+import Cell from './cell'
 import CellState from './cell-state'
 
 export default class Board {
@@ -32,7 +33,8 @@ export default class Board {
 
   canPutStone(col, row, stoneColor) {
     const index = Board.getBoardIndex(col, row)
-    if (this.cells[index] !== CellState.EMPTY) {
+    const cell = this.cells[index]
+    if (cell.state !== CellState.EMPTY) {
       return false
     }
 
@@ -108,11 +110,12 @@ export default class Board {
     if (this._isOutOfBoard(col, row)) return []
 
     const index = Board.getBoardIndex(col, row)
-    const stone = this.cells[index]
+    const cell = this.cells[index]
+    const cellState = cell.state
 
-    if (stone === CellState.EMPTY) return []
+    if (cellState === CellState.EMPTY) return []
 
-    if (stone !== stoneColor) {
+    if (cellState !== stoneColor) {
       positions.push([col, row])
       const nextPostion = {
         col: col + direction.col,
@@ -125,11 +128,12 @@ export default class Board {
   }
 
   _initializeCells() {
-    return [...Array(64)].map((_) => CellState.EMPTY)
+    return [...Array(64)].map((_) => new Cell())
   }
 
-  _updateBoard(col, row, newValue) {
+  _updateBoard(col, row, newCellState) {
     const index = Board.getBoardIndex(col, row)
-    this.cells.splice(index, 1, newValue)
+    let cell = this.cells[index]
+    cell.updateState(newCellState)
   }
 }

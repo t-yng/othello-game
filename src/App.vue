@@ -5,7 +5,6 @@
 </template>
 
 <script>
-// import HelloWorld from './components/HelloWorld'
 import Board from './components/Board'
 
 export default {
@@ -15,3 +14,11 @@ export default {
   }
 }
 </script>
+
+<style>
+#app {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+}
+</style>
