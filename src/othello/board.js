@@ -1,4 +1,3 @@
-import $ from 'jquery'
 import _ from 'lodash'
 import Cell from './cell'
 import CellState from './cell-state'
@@ -23,12 +22,16 @@ export default class Board {
     return [col, row]
   }
 
+  getSimpleCells() {
+    return this.cells.map((cell) => cell.state)
+  }
+
   getCells() {
     return this.cells
   }
 
-  onUpdateCell(fn) {
-    this.updateCellHandler = fn
+  onUpdate(fn) {
+    this.updateBoardHandler = fn
   }
 
   canPutStone(col, row, stoneColor) {
@@ -102,7 +105,7 @@ export default class Board {
   }
 
   _isOutOfBoard(col, row) {
-    return col < 0 || col > 8 || row < 0 || row > 8
+    return col <= 0 || col > 8 || row <= 0 || row > 8
   }
 
   _checkStone(position, direction, stoneColor, positions = []) {
@@ -128,7 +131,7 @@ export default class Board {
   }
 
   _initializeCells() {
-    return [...Array(64)].map((_) => new Cell())
+    return [...Array(64)].map(() => new Cell())
   }
 
   _updateBoard(col, row, newCellState) {
