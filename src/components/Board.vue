@@ -15,10 +15,54 @@ import $ from 'jquery'
 import Cell from './cell'
 import CellState from '../othello/cell-state'
 import Board from '../othello/board'
+import MinMax from '../othello/ai/minmax'
+import Simulator from '../othello/simulator'
 
 const board = new Board()
 let cells = board.getCells()
 let player = CellState.BLACK
+
+const switchPlayer = (skip = false) => {
+    let isGameEnd = Simulator.isGameEnd(board.getSimpleCells())
+    player = (player === CellState.BLACK) ? CellState.WHITE : CellState.BLACK
+    if(Simulator.getAvailablePositions(board.getSimpleCells(), player).length === 0) {
+        if(skip) {
+            isGameEnd = true
+        } else if(isGameEnd === false){
+            window.alert('置く場所が無いのでSKIPします')
+            switchPlayer(true)
+        }
+    }
+
+    if(isGameEnd) {
+        const cells = board.getSimpleCells()
+        const blackCount = cells.filter((cell) => cell === CellState.BLACK).length
+        const whiteCount = cells.filter((cell) => cell === CellState.WHITE).length
+
+        if(blackCount > whiteCount) {
+            window.alert(`黒: ${blackCount} vs ${whiteCount} :白
+            You Win!`)
+        } else if(blackCount < whiteCount) {
+            window.alert(`黒: ${blackCount} vs ${whiteCount} :白
+            You Lose!`)
+        }　else {
+            window.alert(`黒: ${blackCount} vs ${whiteCount} :白
+            Draw!`)
+        }
+
+        return
+    }
+
+    if(player === CellState.WHITE) {
+        const ai = new MinMax(board.getSimpleCells(), player)
+        const position = ai.choiceNextPosition()
+
+        if(!Simulator.canPutStone(board.getSimpleCells(), position, player)) {
+            throw new Error('AIが不正な場所に石が置きました')
+        }
+        $(`.cell:nth-child(${position+1})`).click()
+    }
+}
 
 export default {
     name: 'Board',
@@ -33,10 +77,9 @@ export default {
     methods: {
         onClickCell: function(event) {
             const index = $('.cell').index(event.target)
-            const [col, row] = Board.getBoardPosition(index)
-            if(board.canPutStone(col, row, player)) {
-                board.putStone(col, row, player)
-                player = (player === CellState.BLACK) ? CellState.WHITE : CellState.BLACK
+            if(Simulator.canPutStone(board.getSimpleCells(), index, player)) {
+                board.putStone(index, player)
+                setTimeout(switchPlayer, 500)
             }
         }
     }
