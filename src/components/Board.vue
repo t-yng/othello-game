@@ -16,11 +16,13 @@ import Cell from './cell'
 import CellState from '../othello/cell-state'
 import Board from '../othello/board'
 import MinMax from '../othello/ai/minmax'
+import MonteCarlo from '../othello/ai/monte-carlo'
 import Simulator from '../othello/simulator'
 
 const board = new Board()
 let cells = board.getCells()
 let player = CellState.BLACK
+let isAIThinking = false
 
 const switchPlayer = (skip = false) => {
     let isGameEnd = Simulator.isGameEnd(board.getSimpleCells())
@@ -30,6 +32,7 @@ const switchPlayer = (skip = false) => {
             isGameEnd = true
         } else if(isGameEnd === false){
             window.alert('置く場所が無いのでSKIPします')
+            isAIThinking = !isAIThinking
             switchPlayer(true)
         }
     }
@@ -40,11 +43,15 @@ const switchPlayer = (skip = false) => {
         const whiteCount = cells.filter((cell) => cell === CellState.WHITE).length
 
         if(blackCount > whiteCount) {
+            // window.alert(`黒: ${blackCount} vs ${whiteCount} :白
+            // You Win!`)
             window.alert(`黒: ${blackCount} vs ${whiteCount} :白
-            You Win!`)
+            MinMax Win!`)
         } else if(blackCount < whiteCount) {
+            // window.alert(`黒: ${blackCount} vs ${whiteCount} :白
+            // You Lose!`)
             window.alert(`黒: ${blackCount} vs ${whiteCount} :白
-            You Lose!`)
+            MonteCarlo Win!`)
         }　else {
             window.alert(`黒: ${blackCount} vs ${whiteCount} :白
             Draw!`)
@@ -53,16 +60,33 @@ const switchPlayer = (skip = false) => {
         return
     }
 
-    if(player === CellState.WHITE) {
-        const ai = new MinMax(board.getSimpleCells(), player)
-        const position = ai.choiceNextPosition()
-
-        if(!Simulator.canPutStone(board.getSimpleCells(), position, player)) {
-            throw new Error('AIが不正な場所に石が置きました')
-        }
-        $(`.cell:nth-child(${position+1})`).click()
+    let ai
+    if(player === CellState.BLACK) {
+        ai = new MinMax(board.getSimpleCells(), player)
+    } else {
+        ai = new MonteCarlo(board.getSimpleCells(), player)
     }
+
+    const position = ai.choiceNextPosition()
+
+    if(!Simulator.canPutStone(board.getSimpleCells(), position, player)) {
+        throw new Error('AIが不正な場所に石が置きました')
+    }
+
+    $(`.cell:nth-child(${position+1})`).click()
 }
+
+setTimeout(() => {
+    alert('対戦スタート!')
+    const ai = new MinMax(board.getSimpleCells(), player)
+    const position = ai.choiceNextPosition()
+
+    if(!Simulator.canPutStone(board.getSimpleCells(), position, player)) {
+        throw new Error('AIが不正な場所に石が置きました')
+    }
+
+    $(`.cell:nth-child(${position+1})`).click()
+}, 10000)
 
 export default {
     name: 'Board',
@@ -79,7 +103,12 @@ export default {
             const index = $('.cell').index(event.target)
             if(Simulator.canPutStone(board.getSimpleCells(), index, player)) {
                 board.putStone(index, player)
-                setTimeout(switchPlayer, 500)
+
+                if(player === CellState.BLACK) {
+                    isAIThinking = true
+                }
+
+                setTimeout(switchPlayer, 0)
             }
         }
     }
